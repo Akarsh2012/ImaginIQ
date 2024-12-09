@@ -18,8 +18,79 @@ const CreatePost = () => {
   );
   const [generatingImg, setGeneratingImg] = useState("");
   const [loading,setLoading]=useState(false);
-  const generateImage=()=>{}
+
+
+  // const generateImage= async ()=>{
+
+  //   if(form.prompt)
+  //   {
+  //     try{
+  //       setGeneratingImg(true);
+  //       const response=await fetch('http://localhost:8080/api/v1/imagineiq',{
+  //         method:'POST',
+  //         headers:{
+           
+  //           'Content-Type':'application/json',
+  //         },
+  //         body:JSON.stringify({prompt: form.prompt }),
+  //       });
+  //       const data=await response.json();
+  //       setForm({...form,photo:`data:image/jpeg;base64,${data.photo}`})
+
+  //     }
+  //     catch(error){
+       
+  //       alert(error);
+
+  //     }
+  //     finally{
+  //       setGeneratingImg(false);
+  //     }
+  //   }else{
+  //     alert('Please enter a prompt');
+  //   }
+  // }
+  const generateImage = async () => {
+  if (form.prompt) {
+    try {
+      setGeneratingImg(true);
+
+      // Sending POST request to the backend
+      const response = await fetch('http://localhost:8080/api/v1/imagineiq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: form.prompt }),
+      });
+
+      // Parsing the response
+      const data = await response.json();
+
+      // Debugging: Log the received base64 string
+      console.log("Received Base64 Image:", data.photo);
+
+      // Check if the photo data exists and set the form
+      if (data.photo) {
+        setForm({ ...form, photo:`${data.photo}` });
+      } else {
+        throw new Error("No image data received from the backend.");
+      }
+    } catch (error) {
+      // Log and show error
+      console.error("Error generating image:", error);
+      alert(error.message || "An error occurred while generating the image.");
+    } finally {
+      setGeneratingImg(false);
+    }
+  } else {
+    alert('Please enter a prompt');
+  }
+};
+
+
   const handleSubmit=()=>{}
+
   const handleChange=(e)=>{
     setForm({...form,[e.target.name]:e.target.value});
 
@@ -48,7 +119,7 @@ const CreatePost = () => {
             <FormField LabelName="Prompt"
             type="text"
             name="prompt"
-            placeholder="A plush toy robot stting against a yellow wall"
+            placeholder="Enter your prompt here or click on the surprise me button for a random prompt"
             value={form.prompt}
             handleChange={handleChange}
             isSurpriseMe
