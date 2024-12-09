@@ -1,24 +1,20 @@
-import React, { useState } from 'react'
-import {useNavigate} from 'react-router-dom';
-import {preview} from '../assets';
-import { getRandomPrompts } from '../utils';
-import { FormField } from '../components';
-import PropTypes from 'prop-types';
-import {Loader} from '../components';
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { preview } from "../assets";
+import { getRandomPrompts } from "../utils";
+import { FormField } from "../components";
+import PropTypes from "prop-types";
+import { Loader } from "../components";
 
 const CreatePost = () => {
-  const navigate=useNavigate();
-  const [form,setForm]=useState(
-    {
-      name:"",
-      prmpt:"",
-      photo:"",
-    }
-  );
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    name: "",
+    prompt: "",
+    photo: "",
+  });
   const [generatingImg, setGeneratingImg] = useState("");
-  const [loading,setLoading]=useState(false);
-
+  const [loading, setLoading] = useState(false);
 
   // const generateImage= async ()=>{
 
@@ -29,7 +25,7 @@ const CreatePost = () => {
   //       const response=await fetch('http://localhost:8080/api/v1/imagineiq',{
   //         method:'POST',
   //         headers:{
-           
+
   //           'Content-Type':'application/json',
   //         },
   //         body:JSON.stringify({prompt: form.prompt }),
@@ -39,7 +35,7 @@ const CreatePost = () => {
 
   //     }
   //     catch(error){
-       
+
   //       alert(error);
 
   //     }
@@ -51,72 +47,96 @@ const CreatePost = () => {
   //   }
   // }
   const generateImage = async () => {
-  if (form.prompt) {
-    try {
-      setGeneratingImg(true);
+    if (form.prompt) {
+      try {
+        setGeneratingImg(true);
 
-      // Sending POST request to the backend
-      const response = await fetch('http://localhost:8080/api/v1/imagineiq', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: form.prompt }),
-      });
+        // Sending POST request to the backend
+        const response = await fetch("http://localhost:8080/api/v1/imagineiq", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: form.prompt }),
+        });
 
-      // Parsing the response
-      const data = await response.json();
+        // Parsing the response
+        const data = await response.json();
 
-      // Debugging: Log the received base64 string
-      console.log("Received Base64 Image:", data.photo);
+        // Debugging: Log the received base64 string
+       // console.log("Received Base64 Image:", data.photo);
 
-      // Check if the photo data exists and set the form
-      if (data.photo) {
-        setForm({ ...form, photo:`${data.photo}` });
-      } else {
-        throw new Error("No image data received from the backend.");
+        // Check if the photo data exists and set the form
+        if (data.photo) {
+          setForm({ ...form, photo: `${data.photo}` });
+        } else {
+          throw new Error("No image data received from the backend.");
+        }
+      } catch (error) {
+        // Log and show error
+        console.error("Error generating image:", error);
+        alert(error.message+"Please refresh and try after few seconds"|| "An error occurred while generating the image.");
+      } finally {
+        setGeneratingImg(false);
       }
-    } catch (error) {
-      // Log and show error
-      console.error("Error generating image:", error);
-      alert(error.message || "An error occurred while generating the image.");
-    } finally {
-      setGeneratingImg(false);
+    } else {
+      alert("Please enter a prompt");
     }
-  } else {
-    alert('Please enter a prompt');
-  }
-};
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (form.prompt && form.photo) {
+      setLoading(true);
 
-  const handleSubmit=()=>{}
+      try {
+        const response = await fetch("http://localhost:8080/api/v1/post", {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(form),
+        });
+        await response.json();
+        navigate("/");
+      } catch (error) {
+        alert(error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      alert("Please enter a prompt and generate an image");
+    }
+  };
 
-  const handleChange=(e)=>{
-    setForm({...form,[e.target.name]:e.target.value});
-
-  }
-  const handleSurpriseMe=()=>{
-    const randomPrompt =getRandomPrompts(form.prompt);
-    setForm({...form,prompt: randomPrompt });
-  }
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+  const handleSurpriseMe = () => {
+    const randomPrompt = getRandomPrompts(form.prompt);
+    setForm({ ...form, prompt: randomPrompt });
+  };
   return (
-   <section className='max-w-7xl mx-auto'>
-     <div>
-            <h1 className='font=extrabold text-[#000000] text-[32px]  '>Create</h1>
-            <p className='mt-2 text[#666e75] text-[16px] max-w[500px]  '>Create imaginative and visually stunning images generated by ImaginIQ AI and share them with the community</p>
-        </div>
-        <form className='mt-16 max-w-3xl'onSubmit={handleSubmit}  action="">
-          <div className="flex flex-col gap-5">
-
-            <FormField LabelName="Your Name"
+    <section className="max-w-7xl mx-auto">
+      <div>
+        <h1 className="font=extrabold text-[#000000] text-[32px]  ">Create</h1>
+        <p className="mt-2 text[#666e75] text-[16px] max-w[500px]  ">
+          Create imaginative and visually stunning images generated by ImaginIQ
+          AI and share them with the community
+        </p>
+      </div>
+      <form className="mt-16 max-w-3xl" onSubmit={handleSubmit} action="">
+        <div className="flex flex-col gap-5">
+          <FormField
+            LabelName="Your Name"
             type="text"
             name="name"
             placeholder="enter your name"
             value={form.name}
             handleChange={handleChange}
-            
-            />
-            <FormField LabelName="Prompt"
+          />
+          <FormField
+            LabelName="Prompt"
             type="text"
             name="prompt"
             placeholder="Enter your prompt here or click on the surprise me button for a random prompt"
@@ -124,10 +144,9 @@ const CreatePost = () => {
             handleChange={handleChange}
             isSurpriseMe
             handleSurpriseMe={handleSurpriseMe}
-            
-            />
-             <div className="relative bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-64 p-3 h-64 flex justify-center items-center">
-            { form.photo ? (
+          />
+          <div className="relative bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-64 p-3 h-64 flex justify-center items-center">
+            {form.photo ? (
               <img
                 src={form.photo}
                 alt={form.prompt}
@@ -147,30 +166,33 @@ const CreatePost = () => {
               </div>
             )}
           </div>
-          </div>
+        </div>
 
-
-          <div className="mt-5 flex gap-5">
-            <button
-            type ="button"
+        <div className="mt-5 flex gap-5">
+          <button
+            type="button"
             onClick={generateImage}
-            className='text-white bg-green-700 font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5'
-            >
-              {generatingImg ? 'Generating...': 'Generate'}
-
-            </button>
-          </div>
-          <div className="mt-10">
-            <p className='mt-2 text-[#666e75] text-[14px] '> Once you have created the image you want,you can share it with others in the community showcase</p>
-            <button 
+            className="text-white bg-green-700 font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5"
+          >
+            {generatingImg ? "Generating..." : "Generate"}
+          </button>
+        </div>
+        <div className="mt-10">
+          <p className="mt-2 text-[#666e75] text-[14px] ">
+            {" "}
+            Once you have created the image you want,you can share it with
+            others in the community showcase
+          </p>
+          <button
             type="submit"
-            className='mt-3 text-white bg-[#6469ff] font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center ' 
-             > Share with the community
-            </button>
-          </div>
-        </form>
-   </section>
-  )
-}
+            className="mt-3 text-white bg-[#6469ff] font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center "
+          >{loading ? 'Sharing...':' Share with the community'}
+                      
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+};
 
 export default CreatePost;
